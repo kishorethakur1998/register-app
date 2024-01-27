@@ -17,12 +17,26 @@ pipeline {
         }
         stage("Build Application") {
             steps {
-                sh 'mvn clear package'
+                sh 'mvn clean package'
             }
         }
         stage("Test Application") {
             steps {
                 sh 'mvn test'
+            }
+        }
+        stage("sonarqube analysis") {
+            steps {
+                withSonarQubeEnv(credentialsId: 'jenkins-sonarqube-token') {
+                sh "mvn sonar:sonar"
+                }
+            }
+        }
+        stage("Quality Gate") {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
